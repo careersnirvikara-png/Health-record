@@ -1,0 +1,16 @@
+name = "healthrecordloginuat"
+compatibility_date = "2026-01-23"
+pages_build_output_dir = "./public"
+
+# Pages requires account selection through CLOUDFLARE_ACCOUNT_ID, not this file.
+
+# Server settings. Same code for UAT and production: only these values (and public/config.js) differ.
+[vars]
+MAX_FILE_SIZE_MB = "200"
+MAX_TOTAL_SIZE_MB = "50"
+# Comma-separated list of allowed browser origins, or "*" to allow any (e.g. "https://uat.nirvikara.com")
+ALLOWED_ORIGINS = "*"
+
+[[r2_buckets]]
+binding = "UPLOADS"
+bucket_name = "healthrecordloginuat-uploads"

@@ -1,0 +1,204 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <script src="config.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>File Details</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container { max-width: 700px; margin: 0 auto; }
+    header { text-align: center; color: white; margin-bottom: 30px; }
+    header h1 { font-size: 2em; margin-bottom: 8px; }
+    .detail-card {
+      background: white;
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .detail-card h2 {
+      color: #84fab0;
+      margin-bottom: 24px;
+      border-bottom: 3px solid #84fab0;
+      padding-bottom: 12px;
+    }
+    .detail-row {
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label {
+      color: #666;
+      font-size: 0.9em;
+      font-weight: 600;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .detail-value {
+      color: #333;
+      font-size: 1.1em;
+      word-break: break-all;
+    }
+    .file-icon { font-size: 4em; margin: 20px 0; text-align: center; }
+    .description-box {
+      background: #fffacd;
+      border-left: 4px solid #ffd700;
+      padding: 16px;
+      border-radius: 6px;
+      margin-top: 12px;
+    }
+    .description-label {
+      color: #666;
+      font-size: 0.85em;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .description-text {
+      color: #333;
+      font-size: 1em;
+      line-height: 1.5;
+    }
+    .buttons { display: flex; gap: 12px; margin-top: 24px; }
+    button {
+      background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+      font-weight: 600;
+      cursor: pointer;
+      flex: 1;
+    }
+    button:hover { transform: translateY(-2px); }
+    .error {
+      background: white;
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+      color: #ff6b6b;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1> File Details</h1>
+    </header>
+    <div id="content"></div>
+  </div>
+
+  <script>
+    const WORKER_UPLOAD_URL = window.APP_CONFIG.API_BASE_URL || location.origin;
+
+    async function loadFileDetails() {
+      const params = new URLSearchParams(window.location.search);
+      const key = params.get('key');
+      const email = params.get('email');
+
+      if (!key || !email) {
+        document.getElementById('content').innerHTML = '<div class="error"><h2> Invalid Request</h2><button onclick="window.location.href=\'upload.html\'">Back to Upload</button></div>';
+        return;
+      }
+
+      document.getElementById('content').innerHTML = '<div style="text-align:center;color:white;padding:32px;"> Loading file details...</div>';
+
+      try {
+        const listUrl = WORKER_UPLOAD_URL + '/list?email=' + encodeURIComponent(email);
+        const res = await fetch(listUrl);
+        const json = await res.json();
+
+        if (!res.ok) throw new Error(json.error || 'Failed to load files');
+
+        const file = (json.files || []).find(f => f.key === key);
+        if (!file) throw new Error('File not found');
+
+        const filename = file.key.split('/').pop();
+        const sizeKB = (file.size / 1024).toFixed(2);
+        const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+        const date = new Date(file.uploaded);
+
+        let icon = '';
+        const ext = filename.split('.').pop().toLowerCase();
+        const iconMap = {
+          'jpg': '', 'jpeg': '', 'png': '', 'gif': '', 'webp': '',
+          'pdf': '', 'doc': '', 'docx': '', 'txt': '',
+          'xls': '', 'xlsx': '', 'csv': '',
+          'mp4': '', 'avi': '', 'mov': '',
+          'mp3': '', 'wav': '', 'flac': '',
+          'zip': '', 'rar': '', '7z': ''
+        };
+        icon = iconMap[ext] || icon;
+
+        let html = `
+          <div class="detail-card">
+            <h2> File Information</h2>
+            <div class="file-icon">${icon}</div>
+            <div class="detail-row">
+              <div class="detail-label"> File Name</div>
+              <div class="detail-value"><strong>${filename}</strong></div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label"> File Size</div>
+              <div class="detail-value">${sizeKB} KB (${sizeMB} MB)</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label"> Upload Date</div>
+              <div class="detail-value">${date.toLocaleDateString()}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label"> Upload Time</div>
+              <div class="detail-value">${date.toLocaleTimeString()}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label"> File Type</div>
+              <div class="detail-value">.${ext.toUpperCase()}</div>
+            </div>
+        `;
+
+        console.log('File object:', file);
+        console.log('Description:', file.description);
+
+        if (file.description && file.description.trim()) {
+          html += `
+            <div class="description-box">
+              <div class="description-label"> Description</div>
+              <div class="description-text">${file.description}</div>
+            </div>
+          `;
+        } else {
+          html += `
+            <div class="description-box" style="background:#f0f0f0;border-left-color:#999;">
+              <div class="description-label"> Description</div>
+              <div class="description-text" style="color:#999;">No description provided</div>
+            </div>
+          `;
+        }
+
+        html += `
+            <div class="buttons">
+              <button onclick="window.location.href='upload.html'"> Back to Files</button>
+              <button onclick="window.open('${WORKER_UPLOAD_URL}${file.url}', '_blank')"> Download File</button>
+            </div>
+          </div>
+        `;
+
+        document.getElementById('content').innerHTML = html;
+      } catch (err) {
+        console.error('Error:', err);
+        document.getElementById('content').innerHTML = `<div class="error"><h2> ${err.message}</h2><button onclick="window.location.href='upload.html'">Back to Upload</button></div>`;
+      }
+    }
+
+    window.addEventListener('load', loadFileDetails);
+  </script>
+</body>
+</html>

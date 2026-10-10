@@ -1,0 +1,304 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <script src="config.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Secure File Upload</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    header { text-align: center; color: white; margin-bottom: 40px; }
+    header img { max-width: 200px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+    header h1 { font-size: 2.5em; margin-bottom: 8px; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    header p { font-size: 1.1em; opacity: 0.95; }
+    .section { background: white; border-radius: 12px; padding: 32px; margin-bottom: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+    .section h2 { color: #84fab0; margin-bottom: 24px; font-size: 1.5em; border-bottom: 3px solid #84fab0; padding-bottom: 12px; }
+    form { display: grid; gap: 16px; }
+    label { display: block; margin-bottom: 4px; color: #333; font-weight: 500; font-size: 0.95em; }
+    input[type="text"], input[type="email"], input[type="file"] { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1em; transition: border-color 0.3s; font-family: inherit; }
+    input[type="text"]:focus, input[type="email"]:focus, input[type="file"]:focus { outline: none; border-color: #84fab0; box-shadow: 0 0 0 3px rgba(132, 250, 176, 0.1); }
+    input[type="file"] { padding: 8px; cursor: pointer; }
+    button { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); color: white; padding: 14px 32px; border: none; border-radius: 8px; font-size: 1.05em; font-weight: 600; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 15px rgba(132, 250, 176, 0.3); }
+    button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(132, 250, 176, 0.4); }
+    .delete-btn { background: #ff6b6b; padding: 8px 14px; font-size: 0.85em; margin-left: 8px; box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3); }
+    .delete-btn:hover { background: #ff5252; }
+    .status-box { padding: 12px; border-radius: 6px; margin-top: 16px; background: #f0f4ff; color: #84fab0; border-left: 4px solid #84fab0; min-height: 20px; }
+    .storage-box { background: #f0f8ff; border: 2px solid #8fd3f4; border-radius: 8px; padding: 16px; margin-bottom: 16px; font-size: 0.95em; color: #333; }
+    .storage-bar { background: #e0e0e0; border-radius: 4px; height: 20px; margin: 8px 0; overflow: hidden; }
+    .storage-fill { background: linear-gradient(90deg, #84fab0 0%, #8fd3f4 100%); height: 100%; transition: width 0.3s; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; color: white; font-weight: 600; font-size: 0.85em; }
+    .refresh-btn { background: #8fd3f4; padding: 10px 20px; font-size: 0.9em; margin-bottom: 16px; }
+    .file-list { list-style: none; }
+    .file-list li { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 16px; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-start; transition: transform 0.2s, box-shadow 0.2s; border-left: 4px solid #84fab0; gap: 16px; }
+    .file-thumbnail { width: 80px; height: 80px; border-radius: 6px; background: white; display: flex; align-items: center; justify-content: center; font-size: 2.5em; flex-shrink: 0; border: 2px solid #84fab0; }
+    .file-list li:hover { transform: translateX(4px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .file-info { flex: 1; }
+    .file-list a { color: #667eea; text-decoration: none; font-weight: 600; font-size: 1.05em; transition: color 0.2s; }
+    .file-list a:hover { color: #84fab0; text-decoration: underline; }
+    .file-size { font-size: 0.85em; color: #666; margin-top: 6px; }
+    .file-description { color: #333; margin: 6px 0 4px 0; font-size: 0.9em; background: #fffacd; padding: 6px 8px; border-radius: 4px; border-left: 3px solid #ffd700; font-weight: 500; }
+    .no-files { text-align: center; padding: 32px; color: #999; font-size: 1.1em; }
+    .no-files-icon { font-size: 3em; margin-bottom: 12px; opacity: 0.5; }
+    @media (max-width: 600px) {
+      header h1 { font-size: 1.8em; }
+      .section { padding: 20px; }
+      .file-list li { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <img src="https://images.unsplash.com/photo-1511895426328-dc8714191300?w=400&h=300&fit=crop" alt="Happy family">
+      <h1> Medical Record Upload</h1>
+      <p>Upload and manage your Medical Record</p>
+	  <p>Proper lab analysis unlocks wellness—compare Rx, track improvement!</h3>
+    </header>
+
+    <div class="section">
+      <h2> Upload New File</h2>
+      <form id="f">
+        <div>
+          <label> Full Name</label>
+          <input type="text" name="name" required placeholder="Enter your full name">
+        </div>
+        <div>
+          <label> Email Address</label>
+          <input type="email" name="email" required placeholder="your.email@example.com">
+        </div>
+        <div>
+          <label> Description (Required)</label>
+          <input type="text" name="description" required placeholder="What is this file? Describe it...">
+        </div>
+        <div>
+          <label id="fileLabel"> Select File (Max 2 MB)</label>
+          <input type="file" id="file" required>
+          <small id="limitsNote" style="color:#666;margin-top:4px;display:block;">Maximum file size: 2 MB per file  Maximum total: 50 MB per user</small>
+        </div>
+        <button type="submit"> Upload File</button>
+      </form>
+      <div id="status" class="status-box"></div>
+    </div>
+
+    <div class="section">
+      <h2> Your Uploaded Files</h2>
+      <button class="refresh-btn" onclick="loadFiles()"> Refresh (Last Updated: <span id="lastUpdate">now</span>)</button>
+      
+      <div id="storageBox" class="storage-box" style="display:none;">
+        <strong> Storage Usage:</strong>
+        <div class="storage-bar">
+          <div class="storage-fill" id="storageFill"></div>
+        </div>
+        <div style="font-size:0.9em;color:#666;">
+          <span id="storageText">0 MB / 50 MB (0%)</span>
+        </div>
+      </div>
+
+      <ul id="filesList" class="file-list"></ul>
+      <div id="noFiles" class="no-files">
+        <div class="no-files-icon"></div>
+        <p>No files uploaded yet</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  const status = (t)=> document.getElementById('status').innerText = t;
+  const WORKER_UPLOAD_URL = window.APP_CONFIG.API_BASE_URL || location.origin;
+  const MAX_FILE_SIZE = window.APP_CONFIG.MAX_FILE_SIZE_MB * 1024 * 1024;
+  const MAX_TOTAL_SIZE = window.APP_CONFIG.MAX_TOTAL_SIZE_MB * 1024 * 1024;
+  const MAX_FILE_MB = window.APP_CONFIG.MAX_FILE_SIZE_MB;
+  const MAX_TOTAL_MB = window.APP_CONFIG.MAX_TOTAL_SIZE_MB;
+  document.getElementById('fileLabel').innerText = ` Select File (Max ${MAX_FILE_MB} MB)`;
+  document.getElementById('limitsNote').innerText = `Maximum file size: ${MAX_FILE_MB} MB per file  Maximum total: ${MAX_TOTAL_MB} MB per user`;
+  document.getElementById('storageText').innerText = `0 MB / ${MAX_TOTAL_MB} MB (0%)`;
+
+  let currentUserEmail = localStorage.getItem('userEmail') || '';
+
+  document.getElementById('file').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > MAX_FILE_SIZE) {
+      const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+      status(` File is too large: ${sizeMB} MB (max ${MAX_FILE_MB} MB)`);
+      e.target.value = '';
+    } else {
+      status(' File size OK');
+    }
+  });
+
+  document.getElementById('f').addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = document.querySelector('input[name="email"]').value;
+    const description = document.querySelector('input[name="description"]').value;
+    
+    if (!email) return alert('Email is required');
+    if (!description) return alert('Description is required');
+
+    localStorage.setItem('userEmail', email);
+    currentUserEmail = email;
+
+    const file = document.getElementById('file').files[0];
+    if (!file) return alert('Please select a file');
+
+    if (file.size > MAX_FILE_SIZE) {
+      return status(` File exceeds ${MAX_FILE_MB} MB limit`);
+    }
+
+    status(' Uploading to secure storage...');
+
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('name', document.querySelector('input[name="name"]').value || '');
+    fd.append('email', email);
+    fd.append('description', description);
+
+    try {
+      const res = await fetch(WORKER_UPLOAD_URL + '/upload', { method: 'POST', body: fd, credentials: 'omit' });
+      const json = await res.json();
+      if (!res.ok) return status(' Upload failed: ' + (json.error || res.status));
+
+      status(' Upload complete!');
+      document.getElementById('file').value = '';
+      document.querySelector('input[name="description"]').value = '';
+      await loadFiles();
+    } catch (err) {
+      status(' Error: ' + err.message);
+      console.error('Upload error:', err);
+    }
+  });
+
+  async function deleteFile(key, email) {
+    if (!confirm('Are you sure you want to delete this file?')) return;
+    try {
+      const res = await fetch(WORKER_UPLOAD_URL + '/delete?key=' + encodeURIComponent(key) + '&email=' + encodeURIComponent(email), {
+        method: 'DELETE',
+        credentials: 'omit'
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        alert('Delete failed: ' + (json.error || res.status));
+        return;
+      }
+      await loadFiles();
+    } catch (err) {
+      alert('Error deleting file: ' + err.message);
+      console.error('Delete error:', err);
+    }
+  }
+
+  async function loadFiles() {
+    let email = document.querySelector('input[name="email"]').value;
+    if (!email) {
+      document.getElementById('noFiles').innerText = 'Please enter your email to see your files.';
+      document.getElementById('filesList').innerHTML = '';
+      document.getElementById('storageBox').style.display = 'none';
+      return;
+    }
+
+    const now = new Date();
+    document.getElementById('lastUpdate').innerText = now.toLocaleTimeString();
+
+    try {
+      const listUrl = WORKER_UPLOAD_URL + '/list?email=' + encodeURIComponent(email);
+      const res = await fetch(listUrl);
+      const json = await res.json().catch(() => ({ error: 'Invalid response' }));
+
+      console.log('API Response:', json);
+
+      if (!res.ok) {
+        document.getElementById('noFiles').innerHTML = '<div class="no-files-icon"></div><p>Error loading files: ' + (json.error || res.status) + '</p>';
+        document.getElementById('filesList').innerHTML = '';
+        document.getElementById('storageBox').style.display = 'none';
+        console.error('List error:', json);
+        return;
+      }
+
+      const files = json.files || [];
+      const storage = json.storage || {};
+      const list = document.getElementById('filesList');
+      const noFiles = document.getElementById('noFiles');
+
+      if (storage.max) {
+        const usedMB = (storage.used / 1024 / 1024).toFixed(2);
+        const maxMB = (storage.max / 1024 / 1024).toFixed(0);
+        const percent = storage.percentUsed || 0;
+        
+        document.getElementById('storageBox').style.display = 'block';
+        document.getElementById('storageText').innerText = `${usedMB} MB / ${maxMB} MB (${percent}%)`;
+        document.getElementById('storageFill').style.width = percent + '%';
+        if (percent > 80) {
+          document.getElementById('storageFill').style.background = 'linear-gradient(90deg, #ff9800 0%, #ff6b6b 100%)';
+        } else if (percent > 50) {
+          document.getElementById('storageFill').style.background = 'linear-gradient(90deg, #ffd700 0%, #ff9800 100%)';
+        } else {
+          document.getElementById('storageFill').style.background = 'linear-gradient(90deg, #84fab0 0%, #8fd3f4 100%)';
+        }
+      }
+
+      if (files.length === 0) {
+        list.innerHTML = '';
+        noFiles.innerHTML = '<div class="no-files-icon"></div><p>No files uploaded yet</p>';
+        noFiles.style.display = 'block';
+        return;
+      }
+
+      noFiles.style.display = 'none';
+      list.innerHTML = files.map(f => {
+        const filename = f.key.split('/').pop();
+        const sizeKB = (f.size / 1024).toFixed(2);
+        const date = new Date(f.uploaded);
+        const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+
+        let icon = '';
+        const ext = filename.split('.').pop().toLowerCase();
+        const iconMap = {
+          'jpg': '', 'jpeg': '', 'png': '', 'gif': '', 'webp': '',
+          'pdf': '', 'doc': '', 'docx': '', 'txt': '',
+          'xls': '', 'xlsx': '', 'csv': '',
+          'mp4': '', 'avi': '', 'mov': '',
+          'mp3': '', 'wav': '', 'flac': '',
+          'zip': '', 'rar': '', '7z': ''
+        };
+        icon = iconMap[ext] || icon;
+
+        console.log('File:', filename, 'Description:', f.description);
+
+        return `
+          <li>
+            <div class="file-thumbnail">${icon}</div>
+            <div class="file-info">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <a href="file-detail.html?key=${encodeURIComponent(f.key)}&email=${encodeURIComponent(email)}" target="_blank"><strong>${filename}</strong></a>
+                <button class="delete-btn" onclick="deleteFile('${f.key}', '${email}')"> Delete</button>
+              </div>
+              <div class="file-description"> ${f.description ? f.description : 'No description'}</div>
+              <div class="file-size"> Size: ${sizeKB} KB<br> <strong>Uploaded Date:</strong> ${dateStr}</div>
+            </div>
+          </li>
+        `;
+      }).join('');
+    } catch (err) {
+      document.getElementById('noFiles').innerHTML = '<div class="no-files-icon"></div><p>Error: ' + err.message + '</p>';
+      document.getElementById('filesList').innerHTML = '';
+      document.getElementById('storageBox').style.display = 'none';
+      console.error('Fetch error:', err);
+    }
+  }
+
+  window.addEventListener('load', () => {
+    if (currentUserEmail) {
+      document.querySelector('input[name="email"]').value = currentUserEmail;
+      loadFiles();
+    }
+  });
+  </script>
+</body>
+</html>
+

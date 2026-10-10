@@ -1,0 +1,17 @@
+﻿<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Redirecting...</title>
+</head>
+<body>
+  <script>
+    const email = new URLSearchParams(location.search).get('email');
+    if (email) {
+      window.location.href = 'upload.html?email=' + encodeURIComponent(email);
+    } else {
+      window.location.href = 'upload.html';
+    }
+  </script>
+</body>
+</html>

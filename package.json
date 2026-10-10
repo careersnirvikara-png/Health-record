@@ -1,0 +1,15 @@
+﻿{
+    "name":  "healthrecordloginuat",
+    "version":  "1.0.0",
+    "description":  "Health record login/upload - standalone UAT (Cloudflare Pages + R2)",
+    "private":  true,
+    "scripts":  {
+                    "dev":  "node run-wrangler.cjs pages dev public",
+                    "create-bucket":  "node run-wrangler.cjs r2 bucket create healthrecordloginuat-uploads",
+                    "create-project":  "node run-wrangler.cjs pages project create healthrecordloginuat --production-branch main",
+                    "deploy":  "node run-wrangler.cjs pages deploy public --project-name healthrecordloginuat --branch main"
+                },
+    "devDependencies":  {
+                            "wrangler":  "^3.114.0"
+                        }
+}
