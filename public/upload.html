@@ -15,7 +15,7 @@
     }
     .container { max-width: 900px; margin: 0 auto; }
     header { text-align: center; color: white; margin-bottom: 40px; }
-    header img { max-width: 200px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+    header img { width: 140px; max-width: 100%; height: auto; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
     header h1 { font-size: 2.5em; margin-bottom: 8px; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
     header p { font-size: 1.1em; opacity: 0.95; }
     .section { background: white; border-radius: 12px; padding: 32px; margin-bottom: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
@@ -55,7 +55,7 @@
 <body>
   <div class="container">
     <header>
-      <img src="https://images.unsplash.com/photo-1511895426328-dc8714191300?w=400&h=300&fit=crop" alt="Happy family">
+      <img id="brandImage" src="nirvikara-3d_logo.png" alt="Nirvikara Health">
       <h1> Medical Record Upload</h1>
       <p>Upload and manage your Medical Record</p>
 	  <p>Proper lab analysis unlocks wellness—compare Rx, track improvement!</h3>
@@ -109,6 +109,8 @@
   </div>
 
   <script>
+  document.getElementById('brandImage').src = window.APP_CONFIG.BRANDING.LOGO_PATH;
+  document.getElementById('brandImage').alt = window.APP_CONFIG.BRANDING.NAME;
   const status = (t)=> document.getElementById('status').innerText = t;
   const WORKER_UPLOAD_URL = window.APP_CONFIG.API_BASE_URL || location.origin;
   const MAX_FILE_SIZE = window.APP_CONFIG.MAX_FILE_SIZE_MB * 1024 * 1024;
@@ -119,7 +121,7 @@
   document.getElementById('limitsNote').innerText = `Maximum file size: ${MAX_FILE_MB} MB per file  Maximum total: ${MAX_TOTAL_MB} MB per user`;
   document.getElementById('storageText').innerText = `0 MB / ${MAX_TOTAL_MB} MB (0%)`;
 
-  let currentUserEmail = localStorage.getItem('userEmail') || '';
+  let currentUserEmail = new URLSearchParams(location.search).get('email') || localStorage.getItem('userEmail') || '';
 
   document.getElementById('file').addEventListener('change', (e) => {
     const file = e.target.files[0];
@@ -301,4 +303,3 @@
   </script>
 </body>
 </html>
-

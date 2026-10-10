@@ -6,5 +6,9 @@ window.APP_CONFIG = {
 
   // Client-side limits (the server enforces its own limits, see wrangler.toml [vars])
   MAX_FILE_SIZE_MB: 2,
-  MAX_TOTAL_SIZE_MB: 50
+  MAX_TOTAL_SIZE_MB: 50,
+  BRANDING: {
+    NAME: 'Nirvikara Health',
+    LOGO_PATH: 'nirvikara-3d_logo.png'
+  }
 };

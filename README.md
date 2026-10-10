@@ -12,6 +12,11 @@ The bucket and Pages project have already been created; do not recreate them.
 - `wrangler.toml`: Pages project, R2 bucket binding, server limits and CORS origins.
 - `public/config.js`: public API base URL and client limits. Never put secrets here.
 
+The root URL and `login.html` open the original upload page, preserving email
+query parameters. A compact logo replaces its previous header image. The brand
+name and logo path are configured under `BRANDING` in `public/config.js`.
+The logo is a local asset and is not loaded from production.
+
 UAT uses a separate R2 bucket and does not reference the production API.
 The browser accepts 2 MB per file while the server accepts 200 MB, preserving the
 existing limits. Set both configuration files deliberately when changing limits.
